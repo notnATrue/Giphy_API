@@ -48,31 +48,61 @@ let userSchema = new Schema({
 
 let newUser = mongoose.model('Person', userSchema);
 
-newUser.find(function(err, data) {
-    if (err) throw err;
-    else console.log(data);
+
+
+let idSchema = new Schema({
+    id: String,
+    expires: String
 });
 
-let cookie_ = uuidv1({
-    node: [0x01, 0x23, 0x45, 0x67, 0x89, 0xab],
-    clockseq: 0x1234,
-    msecs: new Date(Date.now()).getTime(),
-    nsecs: 5678
-    });
+let sessionPool = mongoose.model('ids', idSchema);
 
+// sessionPool.find(function(err, data) {
+//     if (err) throw err;
+//     else console.log(data);
+// });
+
+// sessionPool.remove({}, function(err) {
+//     if(err) throw err;
+// });
 
 // giphy.search('pokemon', function (err, res) {
 //    if (err) throw err;
 //    console.log(res);
 // });
 
+sessionPool.find(function(err, data) {
+    if (err) throw err;
+    console.log(data)
+});
+
 app.get('/searching', function(req, res) {
-    res.sendfile('searching.html')
-})
+    res.sendfile(__dirname + '/src/searching.html');
+});
+
+app.post('/search', function(req, res) {
+    // console.log(req.body);
+    console.log('req.cookie.session ' + req.cookies.session);
+    if (req.cookies.session !== undefined) {
+        checkSession(req.cookies.session)
+        .then(data => {
+            if (data === 'liquid')
+            console.log('accsess to search');
+            console.log(data);
+            res.send('accsess to search')
+        })
+        .catch(err => {
+            if (err) throw err
+        });
+        
+    } else {
+        console.log('you are not logged in');
+        res.send('you are not logged in')
+    };
+});
 
 app.get('/', function(req, res) {
     res.sendfile('index.html');
-    console.log(res.cookies);
 });
 
 app.post('/signup', function(req, res) {
@@ -98,17 +128,69 @@ app.post('/signin', function(req, res) {
             checkUserPassword(req.body)
             .then(data => {
                 if (data !== 'password does not matches') {
+                    console.log(data)
+                    addSession(data);
                     res.cookie('session', data, { maxAge: 10000, httpOnly: true });
-                    res.sendfile('searching.html')
+                    res.send('logged');
                 } else {
                     res.send('password does not matches');
                 };
             })
         } else {
-            res.send('user are not exists')
-        }
+            res.send('user are not exists');
+        };
     });
 });
+
+function deleteSession(session) {
+    return new Promise(function(resolve, reject) {
+        let timer = null;
+        timer = setInterval(() => {
+            sessionPool.remove(session, function(err, data) {
+                if (err) throw err;
+                console.log(data);
+                clearInterval(timer);
+            });
+        }, 10000);
+        
+    });
+};
+
+function addSession(id_) {
+    return new Promise(function(resolve, reject) {
+        let newSession = new sessionPool({
+            id: id_,
+            expires: Date.now() + 10000
+        });
+        //
+        newSession.save(function(err, data) {
+            console.log('add this > ' + id_)
+            if (err) throw err;
+            if (data !== null) {
+                resolve('added');
+            } else {
+                resolve('liquid')
+            };
+        });
+        deleteSession({id: id_});
+    });
+};
+
+function checkSession(id_) {
+    return new Promise(function(resolve, reject) {
+        console.log('checkSession id_ ' + id_ )
+        sessionPool.findOne({id: id_}, function(err, data) {
+            console.log('data > ' + data)
+            if (err) throw err;
+            if(data !== null) {
+                console.log(data);
+                resolve('liquid');
+            } else {
+                resolve('session are not liquid');
+            }
+        });
+    });
+};
 
 function encryptPass(val) {
     let encrypted = sha256.x2(val);

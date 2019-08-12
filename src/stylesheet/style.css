@@ -5,6 +5,10 @@
     margin-left: auto;
     
 }
+.container_wrapper {
+    margin: 100px 0px 0px 0px;
+    padding: 50px;
+}
 .form {
     width: 20%;
     margin-top: 100px;
