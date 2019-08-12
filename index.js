@@ -253,10 +253,10 @@ function findUser(id) {
 function updateUser(user, keyword) {
     // let milliseconds = new Date().getTime();
 let length_ = user.history.length;
-    console.log('user history > ' + user.history[5]);
+    console.log('user history > ' + user.history[5]); //refactor this
     console.log('keyword >>>' + keyword);
 
-    if (user.history[5] !== keyword) {
+    if (user.history[5] !== keyword) { //refactor this
         user.history.push(keyword);
         console.log(keyword)
         return new Promise(function(resolve, reject) {
