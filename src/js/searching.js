@@ -9,7 +9,7 @@ function searchFetch(value_) {
     return fetch('/search', {
         method: "POST",
         body: JSON.stringify({
-           "toSearch": searchValue.value_
+           "toSearch": value_
         }),
         headers: {
             'Content-Type': 'application/json'

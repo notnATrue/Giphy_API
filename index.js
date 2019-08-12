@@ -5,20 +5,14 @@ let express = require('express');
 let app = express();
 
 const port = process.env.PORT ;
-// || 3000
+
 const bodyParser = require("body-parser");
 
 const cookieParser = require('cookie-parser');
 
-let request = require('request');
-
 let giphy = require('giphy-api')(process.env.GIPHY_KEY);
 
-const uuidv1 = require('uuid/v1');
-
 var mongoose = require('mongoose'); 
-
-const assert = require('assert');
 
 let sha256 = require('sha256');
 
@@ -35,8 +29,6 @@ const mongoDB = process.env.DB_HOST;
 
 mongoose.connect(mongoDB);
 
-const db = mongoose.connection;
-
 const Schema = mongoose.Schema;
 
 let userSchema = new Schema({
@@ -48,8 +40,6 @@ let userSchema = new Schema({
 
 let newUser = mongoose.model('Person', userSchema);
 
-
-
 let idSchema = new Schema({
     id: String,
     expires: String
@@ -57,7 +47,12 @@ let idSchema = new Schema({
 
 let sessionPool = mongoose.model('ids', idSchema);
 
-// sessionPool.find(function(err, data) {
+newUser.find(function(err, data) {
+    if (err) throw err;
+    else console.log(data);
+});
+
+// newUser.remove({}, function(err, data) {
 //     if (err) throw err;
 //     else console.log(data);
 // });
@@ -66,10 +61,15 @@ let sessionPool = mongoose.model('ids', idSchema);
 //     if(err) throw err;
 // });
 
-// giphy.search('pokemon', function (err, res) {
-//    if (err) throw err;
-//    console.log(res);
-// });
+function giphySearch(value) {
+    return new Promise(function(resolve, reject) {
+        giphy.search(value, function (err, res) {
+            if (err) throw err;
+            // console.log(res);
+            resolve(value);
+         });
+    });
+};
 
 sessionPool.find(function(err, data) {
     if (err) throw err;
@@ -81,15 +81,20 @@ app.get('/searching', function(req, res) {
 });
 
 app.post('/search', function(req, res) {
-    // console.log(req.body);
-    console.log('req.cookie.session ' + req.cookies.session);
+    console.log(req.body);
     if (req.cookies.session !== undefined) {
         checkSession(req.cookies.session)
         .then(data => {
             if (data === 'liquid')
             console.log('accsess to search');
-            console.log(data);
-            res.send('accsess to search')
+            res.send('accsess to search');
+            giphySearch(req.body.toSearch)
+            .then(() => {
+                findUser(req.cookies.session)
+                .then(user => {
+                    updateUser(user, req.body.toSearch);
+                })
+            })
         })
         .catch(err => {
             if (err) throw err
@@ -106,8 +111,6 @@ app.get('/', function(req, res) {
 });
 
 app.post('/signup', function(req, res) {
-    console.log(req.body);
-    console.log(req.body.pass);
     // let encrypted = encryptPass(req.body.pass);
     checkUserExistance(req.body.name)
     .then(res_ => {
@@ -121,7 +124,6 @@ app.post('/signup', function(req, res) {
 });
 
 app.post('/signin', function(req, res) {
-    console.log(req.body);
     checkUserExistance(req.body.name)
     .then((data) => {
         if (data === 'exists') {
@@ -142,17 +144,21 @@ app.post('/signin', function(req, res) {
     });
 });
 
+function encryptPass(val) {
+    let encrypted = sha256.x2(val);
+    return encrypted;
+};
+
 function deleteSession(session) {
     return new Promise(function(resolve, reject) {
         let timer = null;
         timer = setInterval(() => {
-            sessionPool.remove(session, function(err, data) {
+            sessionPool.deleteOne(session, function(err, data) {
                 if (err) throw err;
                 console.log(data);
                 clearInterval(timer);
             });
         }, 10000);
-        
     });
 };
 
@@ -190,11 +196,6 @@ function checkSession(id_) {
             }
         });
     });
-};
-
-function encryptPass(val) {
-    let encrypted = sha256.x2(val);
-    return encrypted;
 };
 
 function checkUserExistance(name_) {
@@ -238,6 +239,36 @@ function checkUserPassword (user) {
                 };
         });
     });
+};
+
+function findUser(id) {
+    return new Promise(function(resolve, reject) {
+        newUser.findById({_id: id}, function(err, data) {
+            console.log('founded user by id > ' + data);
+            resolve(data)
+        });
+    });
+};
+
+function updateUser(user, keyword) {
+    // let milliseconds = new Date().getTime();
+let length_ = user.history.length;
+    console.log('user history > ' + user.history[5]);
+    console.log('keyword >>>' + keyword);
+
+    if (user.history[5] !== keyword) {
+        user.history.push(keyword);
+        console.log(keyword)
+        return new Promise(function(resolve, reject) {
+            newUser.findByIdAndUpdate(user._id, user,{new: true}, function(err, data) {
+                console.log('user_data > ' + data)
+                resolve(data)
+            })
+        });
+    } else {
+        console.log('already exists');
+        return;
+    }
 };
 
 app.listen(port);
