@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome file</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__left">
+    <div class="stackedit__toc">
+      
+<ul>
+<li><a href="#test-task-for-node.js-developers">Test task for Node.js Developers</a>
+<ul>
+<li></li>
+<li><a href="#user-flow">User flow</a></li>
+<li><a href="#search-flow">Search flow</a></li>
+<li><a href="#favorites-flow">Favorites flow</a></li>
+<li><a href="#history-flow">History flow</a></li>
+<li><a href="#recommended">Recommended</a></li>
+</ul>
+</li>
+</ul>
+
+    </div>
+  </div>
+  <div class="stackedit__right">
+    <div class="stackedit__html">
+      <h1 id="test-task-for-node.js-developers">Test task for Node.js Developers</h1>
+<p>The task is to create an intermediate API for images search service through <a href="https://developers.giphy.com/">Giphy API</a>. The user can search for image by keywords ( phrases ), mark favorite images and view search history by matching ( phrase ) <code>oneToMany</code> ( favorite images ). As a database you can use any relational database used SQL. The application should work in three states: testing, development, production and covered by end-to-end tests.</p>
+<h3 id="follow-these-required-steps">Follow these required steps:</h3>
+<ul>
+<li>
+<p>Create a repository on your <a href="https://github.com">GitHub</a></p>
+</li>
+<li>
+<p>Add to collaborators <a href="https://t.me/Helsis">HELSIS666</a>  and <a href="https://t.me/creams9tuna">creams9tuna</a></p>
+</li>
+<li>
+<p>Analyze magic variables and put them into environment variable files:<br>
+<code>.env</code> - for production<br>
+<code>test.env</code> - for testing<br>
+<code>development.env</code> - for development</p>
+</li>
+<li>
+<p>Keep calm and more commits are good :)</p>
+</li>
+<li>
+<p>Write a little documentation on project launches</p>
+</li>
+</ul>
+<h3 id="testing">Testing:</h3>
+<p>End-to-end application testing includes coverage of all controllers and application methods in two states:</p>
+<ul>
+<li>Failed</li>
+<li>Successful</li>
+</ul>
+<blockquote>
+<p>Do not forget that the method may have several cases of error</p>
+</blockquote>
+<h2 id="user-flow">User flow</h2>
+<p>Any user in the system must receive his session identifier. Without this identifier, the user cannot perform any actions with the rest of the functionality.</p>
+<h2 id="search-flow">Search flow</h2>
+<p>Images search is done through the Giphy API. With an empty request, the application should return popular images. Each images in the response from the Giphy API must be mapped to the records of the user’s favorite images.</p>
+<h2 id="favorites-flow">Favorites flow</h2>
+<p>The user should be able to mark photos as favorites. Selected images must be unique by an identifier issued by the Giphy API. The user should see these marks in two places:</p>
+<ul>
+<li>Image Search</li>
+<li>User history</li>
+</ul>
+<h2 id="history-flow">History flow</h2>
+<p>User search history must be unique by keyword and include:</p>
+<ul>
+<li>Keyword</li>
+<li>Favorites images</li>
+<li>Timestamp</li>
+</ul>
+<h2 id="recommended">Recommended</h2>
+<p>Pay attention to these recommendations, they will greatly help you in the future.</p>
+<h3 id="stack-of-technologies">Stack of technologies:</h3>
+<p>These technologies will facilitate your development process due to rich functionality, extensive documentation and many examples of working code.</p>
+<ul>
+<li><a href="https://docs.nestjs.com">Nest.js</a></li>
+<li><a href="https://typeorm.io">TypeORM</a></li>
+<li><a href="https://www.npmjs.com/package/giphy-api">Giphy-api</a></li>
+<li><a href="https://docs.nestjs.com/recipes/swagger">Swagger</a> - Powerful definition format to describe RESTful APIs</li>
+</ul>
+<h3 id="literature">Literature:</h3>
+<p>Take 20-25 minutes to read this literature. it will help you with the further development and maintenance of repositories in order.</p>
+<ul>
+<li><a href="https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow">GitFlow</a></li>
+<li><a href="https://www.conventionalcommits.org/en/v1.0.0-beta.2/">Conventional Commits</a></li>
+</ul>
+<blockquote>
+<p>Best of luck! 😀</p>
+</blockquote>
+<!--stackedit_data:&#10;eyJoaXN0b3J5IjpbLTE5MzU0NTgxOTgsNTg0NzM1OTUzLC04Nj&#10;A1OTAwNzksLTEwNzg5Mjc4NTgsLTE1OTg3MDg3ODMsLTE1OTg3&#10;MDg3ODMsLTIwMTkzNDkzOTAsLTMzMTU4NzMxNSwxNDEyMTEyMT&#10;c0LDk5ODQ4NDc0OCwtMTQ5NjA0NTM1NiwxNjU3MzYzMzgzLC01&#10;MzA0MjM4OTQsMTcwODk1NjEwM119&#10;-->
+
+    </div>
+  </div>
+</body>
+
+</html>
