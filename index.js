@@ -42,7 +42,7 @@ let newUser = mongoose.model('Person', userSchema);
 
 let idSchema = new Schema({
     id: String,
-    expires: String
+    time: String
 });
 
 let sessionPool = mongoose.model('ids', idSchema);
@@ -63,11 +63,18 @@ newUser.find(function(err, data) {
 
 function giphySearch(value) {
     return new Promise(function(resolve, reject) {
-        giphy.search(value, function (err, res) {
-            if (err) throw err;
-            // console.log(res);
-            resolve(value);
-         });
+        if (value !== '') {
+            giphy.search(value, function (err, res) {
+                if (err) throw err;
+                // console.log(res);
+                resolve(res);
+             });
+        } else {
+            giphy.trending(function(err, res) {
+                // console.log(res);
+                resolve(res);
+            })
+        };
     });
 };
 
@@ -89,10 +96,15 @@ app.post('/search', function(req, res) {
             console.log('accsess to search');
             res.send('accsess to search');
             giphySearch(req.body.toSearch)
-            .then(() => {
+            .then((giphy_res) => {
                 findUser(req.cookies.session)
                 .then(user => {
-                    updateUser(user, req.body.toSearch);
+                    Promise.all([updateUserHistory(user, req.body.toSearch), randomize(giphy_res, user)], (err, data) => {
+                        console.log(data)
+                    })
+                    .then(() => {
+
+                    })
                 })
             })
         })
@@ -241,7 +253,7 @@ function checkUserPassword (user) {
     });
 };
 
-function findUser(id) {
+async function findUser(id) {
     return new Promise(function(resolve, reject) {
         newUser.findById({_id: id}, function(err, data) {
             console.log('founded user by id > ' + data);
@@ -250,15 +262,16 @@ function findUser(id) {
     });
 };
 
-function updateUser(user, keyword) {
-    // let milliseconds = new Date().getTime();
-let length_ = user.history.length;
-    console.log('user history > ' + user.history[5]); //refactor this
-    console.log('keyword >>>' + keyword);
+function updateUserHistory(user, keyword) {
+    let milliseconds = new Date().getTime();
+    let length_ = user.history.length - 1;
+    console.log('user history > ' + user.history[length_]);
 
-    if (user.history[5] !== keyword) { //refactor this
-        user.history.push(keyword);
-        console.log(keyword)
+    if (user.history[length_].keyword !== keyword) {
+        user.history.push({
+            "keyword": keyword,
+            "time": milliseconds
+        });
         return new Promise(function(resolve, reject) {
             newUser.findByIdAndUpdate(user._id, user,{new: true}, function(err, data) {
                 console.log('user_data > ' + data)
@@ -268,7 +281,66 @@ let length_ = user.history.length;
     } else {
         console.log('already exists');
         return;
-    }
+    };
 };
+
+async function updateUserFavorites(user, target) {
+    return new Promise(function(resolve, reject) {
+        newUser.findByIdAndUpdate(user._id, user, {new: true}, function(err, data) {
+            if (err) throw err;
+            console.log('async done@!');
+            return console.log(data)
+        });
+    });
+};
+
+async function randomize(pool, user) {
+    console.log("pool.data.length >>>>>>>>>>" + pool.data.length)
+    let milliseconds = new Date().getTime();
+        if (pool.length !== 0) {
+            let targetNumber = randomizer(0, pool.data.length);
+            console.log("returnded random number >>>>>>>>>>>" + targetNumber)
+            let target = pool.data[targetNumber].id;
+            console.log('randomized number + id >>> ' + target);
+           let founded = await findFavorites(target, user.liked);
+           console.log("founded >>>>>>>>>>>>>>>>>" + founded);
+           if (founded === undefined) {
+                user.liked.push({
+                    "id": target,
+                    "time": milliseconds
+                })
+                let x = await updateUserFavorites(user, target);
+                return x;
+           } else {
+               return console.log(">already liked<");
+           };
+            // let y = await findUser;
+            // return console.log(x);
+        }
+}
+
+function randomizer(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+};
+
+async function findFavorites(target, pool) {
+    let target_ = target;
+    let result = pool.find(function(item) {
+        return item.id === "3oEduV4SOS9mmmIOkw"; //target_
+    });
+    return result;
+};
+
+// function compare(arr1,arr2){
+  
+//     const objMap={};
+    
+//   arr1.forEach((e1)=>arr2.forEach((e2)=> {if(e1 === e2){
+//          objMap[e1]=objMap[e1]+1||1 ;
+//       }
+//     }
+//   ));
+//   console.log(Object.keys(objMap).map(e=>Number(e)));
+//   }
 
 app.listen(port);
