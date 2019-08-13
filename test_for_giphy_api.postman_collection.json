@@ -1,0 +1,371 @@
+{
+	"info": {
+		"_postman_id": "7e155914-6518-4109-b986-d8d85c11f508",
+		"name": "test_for_giphy_api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "http://localhost:3000/search",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "",
+							"value": "",
+							"description": "passed , while try to search while unlogged user",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/search",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"search"
+					]
+				},
+				"description": "passed when unlogged user try to search"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/signin",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "",
+							"value": "",
+							"description": "passed , when user are not exists",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/signin",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"signin"
+					]
+				},
+				"description": "trying to loggin while user are not exists\npassed"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/signup",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "",
+							"value": "",
+							"description": "passed , when trying to send empty body",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/signup",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"signup"
+					]
+				},
+				"description": "passed , when trying to send empty body"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/signup",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "name",
+							"value": "",
+							"description": "passed, when trying to create existed user",
+							"type": "text"
+						},
+						{
+							"key": "pass",
+							"value": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/signup",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"signup"
+					]
+				},
+				"description": "passed, when trying to create unexisted user"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/signin",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "name",
+							"value": "",
+							"description": "passed, when trying to logged as existed user",
+							"type": "text"
+						},
+						{
+							"key": "pass",
+							"value": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/signin",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"signin"
+					]
+				},
+				"description": "passed, when trying to logged as existed user"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/search",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "",
+							"value": "",
+							"description": "passed, when trying send empty body",
+							"type": "text"
+						},
+						{
+							"key": "pass",
+							"value": "",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/search",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"search"
+					]
+				},
+				"description": "passed, when trying send empty body"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/search",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "toSearch",
+							"value": "",
+							"description": "passed, when trying to search with epty request",
+							"type": "text"
+						},
+						{
+							"key": "pass",
+							"value": "",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/search",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"search"
+					]
+				},
+				"description": "passed, when trying to search with epty request"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/search",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "toSearch",
+							"value": "pokemon",
+							"description": "passed, when trying to search pokemon",
+							"type": "text"
+						},
+						{
+							"key": "pass",
+							"value": "",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/search",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"search"
+					]
+				},
+				"description": "passed, when trying to search pokemon\nin response -   results from giphy API,\n\t\t\t\trecienly liked,\n\t\t\t\tpool of liked images,\n\t\t\t\thistory of searching requsts,\n\t\t\t\tadding recently searched if last does not matches\n\t\t\t\t"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/search",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "toSearch",
+							"value": "pokemon",
+							"description": "passed, when trying to search while session was ended",
+							"type": "text"
+						},
+						{
+							"key": "pass",
+							"value": "",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/search",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"search"
+					]
+				},
+				"description": "passed, when trying to search while session was ended"
+			},
+			"response": []
+		}
+	]
+}

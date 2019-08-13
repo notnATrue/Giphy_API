@@ -85,53 +85,56 @@ sessionPool.find(function(err, data) {
 
 app.post('/search', function(req, res) {
     console.log(req.body);
-    if (req.cookies.session !== undefined) {
-        checkSession(req.cookies.session)
-        .then(data => {
-            if (data === 'liquid') {
-            console.log('accsess to search');
-            // res.send('accsess to search');
-            giphySearch(req.body.toSearch)
-            .then((giphy_res) => {
-                findUser(req.cookies.session)
-                .then(user => {
-                    Promise.all([updateUserHistory(user, req.body.toSearch), randomize(giphy_res, user)])
-                    .then((finalRes) => {
-                        console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>> result have been sended");
-                        
-                        if(finalRes[1] === "already liked") {
-                            console.log(finalRes[1])
-                            res.send({
-                                "searchResponse": giphy_res.data,
-                                "fromHistory": {
-                                   "history": finalRes[0],
-                                   "likes": finalRes[1],
-                                }
-                            });
-                        } else {
-                            res.send({
-                                "searchResponse": giphy_res.data,
-                                "fromHistory": {
-                                   "history": finalRes[0],
-                                   "likes": finalRes[1],
-                                }
-                            });
-                        };
+    if (JSON.stringify(req.body) !== "{}") {
+        if (req.cookies.session !== undefined) {
+            checkSession(req.cookies.session)
+            .then(data => {
+                if (data === 'liquid') {
+                console.log('accsess to search');
+                
+                giphySearch(req.body.toSearch)
+                .then((giphy_res) => {
+                    findUser(req.cookies.session)
+                    .then(user => {
+                        Promise.all([updateUserHistory(user, req.body.toSearch), randomize(giphy_res, user)])
+                        .then((finalRes) => {
+                            console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>> result have been sended");
+                            if(finalRes[1] === "already liked") {
+                                console.log(finalRes[1])
+                                res.send({
+                                    "searchResponse": giphy_res.data,
+                                    "fromHistory": {
+                                    "history": finalRes[0],
+                                    "likes": finalRes[1],
+                                    }
+                                });
+                            } else {
+                                res.send({
+                                    "searchResponse": giphy_res.data,
+                                    "fromHistory": {
+                                    "history": finalRes[0],
+                                    "likes": finalRes[1],
+                                    }
+                                });
+                            };
+                        })
                     })
                 })
+            } else {
+                res.send('you are not logged in')
+            }
             })
+            .catch(err => {
+                if (err) throw err
+            });
+            
         } else {
+            console.log('you are not logged in');
             res.send('you are not logged in')
-        }
-        })
-        .catch(err => {
-            if (err) throw err
-        });
-        
+        };
     } else {
-        console.log('you are not logged in');
-        res.send('you are not logged in')
-    };
+        res.send('empty body are not allowed');
+    }
 });
 
 app.get('/', function(req, res) {
@@ -140,6 +143,8 @@ app.get('/', function(req, res) {
 
 app.post('/signup', function(req, res) {
     // let encrypted = encryptPass(req.body.pass);
+    console.log(req.body)
+    if (JSON.stringify(req.body) !== "{}")
     checkUserExistance(req.body.name)
     .then(res_ => {
         if (res_ === 'not exists') {
@@ -149,6 +154,9 @@ app.post('/signup', function(req, res) {
             res.send('already exists');
         };
     });
+    else {
+        res.send('empty body')
+    }
 });
 
 app.post('/signin', function(req, res) {
@@ -160,7 +168,7 @@ app.post('/signin', function(req, res) {
                 if (data !== 'password does not matches') {
                     console.log(data)
                     addSession(data);
-                    res.cookie('session', data, { maxAge: 1000000, httpOnly: true });
+                    res.cookie('session', data, { maxAge: process.env.TIMER, httpOnly: true });
                     res.send('logged');
                 } else {
                     res.send('password does not matches');
@@ -185,8 +193,9 @@ function deleteSession(session) {
                 if (err) throw err;
                 console.log(data);
                 clearInterval(timer);
+                resolve()
             });
-        }, 1000000);
+        }, process.env.TIMER);
     });
 };
 
@@ -317,10 +326,10 @@ function updateUserFavorites(user, target) {
 
 function randomize(pool, user) {
     return new Promise(function(resolve, reject) {
-
-    
     let user_ = user;
-    console.log("pool.data.length >>>>>>>>>>" + pool.data.length)
+
+    console.log("pool.data.length >>>>>>>>>>" + pool.data.length);
+
     let milliseconds = new Date().getTime();
         if (pool.length !== 0) {
             let targetNumber = randomizer(0, pool.data.length);
@@ -335,39 +344,35 @@ function randomize(pool, user) {
                     "time": milliseconds
                 };
                 user_.liked.push(liked);
-              Promise.all([updateUserFavorites(user_, target), findInFavoritesFromResponse(pool.data, user_.liked)])
-              .then((result_) => {
+
+                Promise.all([updateUserFavorites(user_, target),
+                findInFavoritesFromResponse(pool.data, user_.liked)])
+                .then((result_) => {
                   console.log('after promise all result >>>>>>>>>>>>>>>>>>>>>' + result_)
-                gotMatchesFromResponse(result_, target)
-                .then((res_) => {
-                    resolve(res_)
-                });
-            });
-                // .then((res__) => {
-                //     console.log(res__)
-                //     return res__;
-                // })
-                } else {
-                    console.log(">already liked<");
-                    return new Promise(function(resolve_, reject) {
-                        resolve_("already liked")
-                    })
-                    .then(() => {
-                       return findInFavoritesFromResponse(pool.data, user_.liked)
-                    })
-                    .then((result_) => {
-                        let word = "already liked";
-                        gotMatchesFromResponse(result_, word)
-                        .then((res_) => {
-                            resolve(res_)
-                        });
+                    gotMatchesFromResponse(result_, target, user_.liked)
+                    .then((res_) => {
+                        resolve(res_)
                     });
-                    ///////////////
+                });
+            } else {
+                console.log(">already liked<");
+                return new Promise(function(resolve_, reject) {
+                    resolve_("already liked")
+                })
+                .then(() => {
+                    return findInFavoritesFromResponse(pool.data, user_.liked)
+                })
+                .then((result_) => {
+                    let word = "already liked";
+                    gotMatchesFromResponse(result_, word, user_.liked)
+                    .then((res_) => {
+                        resolve(res_)
+                    });
+                });
                };
            });
         };
-    })
-        // pool.data user.liked
+    });
 };
 
 function randomizer(min, max) {
@@ -378,7 +383,6 @@ function findFavorites(target, pool) {
     return new Promise(function(resolve, reject) {
         let target_ = target;
         let result = pool.find(function(item) {
-            
             return item.id === target_; //3oEduV4SOS9mmmIOkw
         });
         console.log('found favorites > ' + result)
@@ -396,17 +400,15 @@ function findInFavoritesFromResponse(arr1,arr2) {
         arr2.forEach((item) => {
             arr2_.push(item.id);
         });
-        console.log('this is array one ========== ' + arr1_);
-        console.log('this is array two ========== ' + arr2_);
+        // console.log('this is array one ========== ' + arr1_);
+        // console.log('this is array two ========== ' + arr2_);
         
         let result = arr1_.filter( z => arr2_.indexOf(z) !== -1 );
         resolve(result);
-    })
-    
-    // return await gotMatchesFromResponse(result);
+    });
 };
 
-function gotMatchesFromResponse(arr, word) {
+function gotMatchesFromResponse(arr, word, liked) {
     return new Promise(function(resolve, reject) {
         giphy.id(arr, function(err, res) {
             console.log('matches from response<<<<<<<');
@@ -414,15 +416,17 @@ function gotMatchesFromResponse(arr, word) {
             if (word === "already liked") {
                 resolve({
                     "matches from response" :res.data,
-                    "liked": "already liked"
+                    "liked": "already liked",
+                    "all liked images": liked
                 });
-            }
+            };
             resolve({
                 "matches from response" :res.data,
-                "liked": word
-            })
+                "liked": word,
+                "all liked images": liked
+            });
         });
-    })  
+    });
 };
 
 app.listen(port);
