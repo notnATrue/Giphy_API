@@ -4,11 +4,6 @@ const db = require("../db");
 
 const logic = require("./thirdparty.logic");
 
-db.SessionPool.find({}, (err, data) => {
-  if (err) throw err;
-  console.log(data);
-});
-
 function updateUserHistory(user, keyword) {
   const milliseconds = new Date().getTime();
 
