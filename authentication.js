@@ -1,13 +1,12 @@
-let db = require("./db");
-let logic = require("./thirdparty.logic");
+const db = require("./db");
+const logic = require("./thirdparty.logic");
 
 function checkUserExistance(name) {
-  let userName = name;
+  const userName = name;
   return new Promise(function(resolve) {
     db.NewUser.findOne({ name: userName }, function(err, data) {
       if (err) throw err;
       if (data !== null) {
-          
         resolve("exists");
       } else {
         resolve("not exists");

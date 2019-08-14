@@ -13,14 +13,14 @@ const UserSchema = new Schema({
   liked: []
 });
 
-let NewUser = mongoose.model("Person", UserSchema);
+const NewUser = mongoose.model("Person", UserSchema);
 
 const IdSchema = new Schema({
   id: String,
   time: String
 });
 
-let SessionPool = mongoose.model("ids", IdSchema);
+const SessionPool = mongoose.model("ids", IdSchema);
 
 module.exports = {
   mongoose,
