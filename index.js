@@ -24,12 +24,19 @@ app.use(express.static(`${__dirname}/src`));
 
 const db = require('./db');
 
-const logic = require('./thirdparty.logic')
+const logic = require('./thirdparty.logic');
 
-db.newUser.find(function(err, data) {
-  if (err) throw err;
-  else console.log(data);
-});
+const session = require('./session');
+
+// db.newUser.find(function(err, data) {
+//   if (err) throw err;
+//   else console.log(data);
+// });
+
+// db.sessionPool.find(function(err, data) {
+//   if (err) throw err;
+//   console.log(data);
+// });
 
 // db.newUser.remove({}, function(err, data) {
 //     if (err) throw err;
@@ -57,16 +64,11 @@ function giphySearch(value) {
   });
 }
 
-db.sessionPool.find(function(err, data) {
-  if (err) throw err;
-  console.log(data);
-});
-
 app.post("/search", function(req, res) {
   console.log(req.body);
   if (req.cookies.session !== undefined) {
     if (JSON.stringify(req.body) !== "{}") {
-      checkSession(req.cookies.session)
+      session.checkSession(req.cookies.session)
         .then(data => {
           if (data === "liquid") {
             console.log("accsess to search");
@@ -77,9 +79,7 @@ app.post("/search", function(req, res) {
                   updateUserHistory(user, req.body.toSearch),
                   randomize(giphy_res, user)
                 ]).then(finalRes => {
-                  console.log(
-                    ">>>>>>>>>>>>>>>>>>>>>>>>>>> result have been sended"
-                  );
+                  console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>> result have been sended");
                   if (finalRes[1] === "already liked") {
                     console.log(finalRes[1]);
                     res.send({
@@ -124,7 +124,7 @@ app.get("/", function(req, res) {
 app.post("/signup", function(req, res) {
   // let encrypted = encryptPass(req.body.pass);
   console.log(req.body);
-  if (JSON.stringify(req.body) !== "{}")
+  if (JSON.stringify(req.body) !== "{}" && (!req.body.name === false && !req.body.pass === false))
     checkUserExistance(req.body.name).then(res_ => {
       if (res_ === "not exists") {
         createUser(req.body).then(() => res.send("created"));
@@ -143,7 +143,7 @@ app.post("/signin", function(req, res) {
       checkUserPassword(req.body).then(data => {
         if (data !== "password does not matches") {
           console.log(data);
-          addSession(data);
+          session.addSession(data);
           res.cookie("session", data, {
             maxAge: process.env.TIMER,
             httpOnly: true
@@ -158,56 +158,6 @@ app.post("/signin", function(req, res) {
     }
   });
 });
-
-function deleteSession(session) {
-  return new Promise(function(resolve, reject) {
-    let timer = null;
-    timer = setInterval(() => {
-      db.sessionPool.deleteOne(session, function(err, data) {
-        if (err) throw err;
-        console.log(data);
-        clearInterval(timer);
-        resolve();
-      });
-    }, process.env.TIMER);
-  });
-}
-
-function addSession(id_) {
-  return new Promise(function(resolve, reject) {
-    const newSession = new db.sessionPool({
-      id: id_,
-      expires: Date.now() + 10000
-    });
-    //
-    newSession.save(function(err, data) {
-      console.log(`add this > ${id_}`);
-      if (err) throw err;
-      if (data !== null) {
-        resolve("added");
-      } else {
-        resolve("liquid");
-      }
-    });
-    deleteSession({ id: id_ });
-  });
-}
-
-function checkSession(id_) {
-  return new Promise(function(resolve, reject) {
-    console.log(`checkSession id_ ${id_}`);
-    db.sessionPool.findOne({ id: id_ }, function(err, data) {
-      console.log(`data > ${data}`);
-      if (err) throw err;
-      if (data !== null) {
-        console.log(data);
-        resolve("liquid");
-      } else {
-        resolve("session are not liquid");
-      }
-    });
-  });
-}
 
 function checkUserExistance(name_) {
   return new Promise(function(resolve, reject) {
