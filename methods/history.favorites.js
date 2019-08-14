@@ -1,6 +1,6 @@
 const giphy = require("giphy-api")(process.env.GIPHY_KEY);
 
-const db = require("./db");
+const db = require("../db");
 
 const logic = require("./thirdparty.logic");
 
@@ -36,7 +36,7 @@ function updateUserFavorites(user, target) {
   return new Promise(function(resolve) {
     db.NewUser.findByIdAndUpdate(user._id, user, { new: true }, function(err) {
       if (err) throw err;
-      resolve(target);
+      resolve();
     });
   });
 }
@@ -100,7 +100,10 @@ function randomize(pool, user) {
             time: milliseconds
           };
           currentUser.liked.push(liked);
-
+        //   Promise.all([
+        //     updateUserFavorites(currentUser, target),
+        //     findInFavoritesFromResponse(pool.data, currentUser.liked)
+        //   ])
           Promise.all([
             updateUserFavorites(currentUser, target),
             findInFavoritesFromResponse(pool.data, currentUser.liked)

@@ -20,11 +20,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.static(`${__dirname}/src`));
 
-const session = require("./session");
+const session = require("./controllers/session");
 
-const auth = require("./authentication");
+const auth = require("./controllers/authentication");
 
-const favorites = require("./history.favorites");
+const favorites = require("./methods/history.favorites");
 
 // db.NewUser.find(function(err, data) {
 //   if (err) throw err;
@@ -36,21 +36,13 @@ const favorites = require("./history.favorites");
 //   console.log(data);
 // });
 
-// db.NewUser.remove({}, function(err, data) {
-//     if (err) throw err;
-//     else console.log(data);
-// });
 
-// db.SessionPool.remove({}, function(err) {
-//     if(err) throw err;
-// });
 
 function giphySearch(value) {
   return new Promise(function(resolve) {
     if (value !== "") {
       giphy.search(value, function(err, res) {
         if (err) throw err;
-        // console.log(res);
         resolve(res);
       });
     } else {

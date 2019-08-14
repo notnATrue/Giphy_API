@@ -1,4 +1,4 @@
-const db = require("./db");
+const db = require("../db");
 
 function deleteSession(session) {
   return new Promise(function(resolve) {
@@ -49,3 +49,12 @@ module.exports = {
   addSession,
   checkSession
 };
+
+// db.NewUser.remove({}, function(err, data) {
+//     if (err) throw err;
+//     else console.log(data);
+// });
+
+// db.SessionPool.remove({}, function(err) {
+//     if(err) throw err;
+// });

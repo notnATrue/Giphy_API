@@ -1,5 +1,5 @@
-const db = require("./db");
-const logic = require("./thirdparty.logic");
+const db = require("../db");
+const logic = require("../methods/thirdparty.logic");
 
 function checkUserExistance(name) {
   const userName = name;
