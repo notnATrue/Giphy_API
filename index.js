@@ -20,13 +20,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.static(`${__dirname}/src`));
 
-const db = require('./db');
+let db = require("./db");
 
-const logic = require('./thirdparty.logic');
+let logic = require("./thirdparty.logic");
 
-const session = require('./session');
+let session = require("./session");
 
-const auth = require('./authentication')
+let auth = require("./authentication");
 
 // db.NewUser.find(function(err, data) {
 //   if (err) throw err;
@@ -48,11 +48,11 @@ const auth = require('./authentication')
 // });
 
 function giphySearch(value) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(resolve) {
     if (value !== "") {
       giphy.search(value, function(err, res) {
         if (err) throw err;
-        console.log(res);
+        // console.log(res);
         resolve(res);
       });
     } else {
@@ -64,26 +64,174 @@ function giphySearch(value) {
   });
 }
 
+function updateUserHistory(user, keyword) {
+  const milliseconds = new Date().getTime();
+
+  let historyLength = user.history.length - 1;
+  if (historyLength < 0) {
+    historyLength = 0;
+  }
+  // console.log(`user history > ${user.history[historyLength]}`);
+
+  if (
+    user.history[historyLength] === undefined ||
+    user.history[historyLength].keyword !== keyword
+  ) {
+    user.history.push({
+      keyword,
+      time: milliseconds
+    });
+    return new Promise(function(resolve) {
+      db.NewUser.findByIdAndUpdate(user._id, user, { new: true }, function(
+        err,
+        data
+      ) {
+        // console.log(`liking image > ${data}`);
+        resolve(data.history);
+      });
+    });
+  }
+  // console.log("this keyword latest in pool");
+  return "this keyword latest in pool";
+}
+
+function updateUserFavorites(user, target) {
+  return new Promise(function(resolve) {
+    db.NewUser.findByIdAndUpdate(user._id, user, { new: true }, function(err) {
+      if (err) throw err;
+      // console.log("async done@!");
+      resolve(target); // //
+    });
+  });
+}
+
+function findFavorites(target, pool) {
+  return new Promise(function(resolve) {
+    const result = pool.find(function(item) {
+      return item.id === target; // 3oEduV4SOS9mmmIOkw
+    });
+    // console.log(`found favorites > ${result}`);
+    resolve(result);
+  });
+}
+
+function findInFavoritesFromResponse(arr1, arr2) {
+  return new Promise(function(resolve) {
+    const resArrayOne = [];
+    const resArrayTwo = [];
+    arr1.forEach(item => {
+      resArrayOne.push(item.id);
+    });
+    arr2.forEach(item => {
+      resArrayTwo.push(item.id);
+    });
+    // console.log('this is array one ========== ' + resArrayOne);
+    // console.log('this is array two ========== ' + resArrayTwo);
+
+    const result = resArrayOne.filter(z => resArrayTwo.indexOf(z) !== -1);
+    resolve(result);
+  });
+}
+
+function gotMatchesFromResponse(arr, word, liked) {
+  return new Promise(function(resolve) {
+    giphy.id(arr, function(err, res) {
+      // console.log("matches from response<<<<<<<");
+      // console.log(res.data);
+      if (word === "already liked") {
+        resolve({
+          "matches from response": res.data,
+          liked: "already liked",
+          "all liked images": liked
+        });
+      }
+      resolve({
+        "matches from response": res.data,
+        liked: word,
+        "all liked images": liked
+      });
+    });
+  });
+}
+
+function randomize(pool, user) {
+  return new Promise(function(resolve) {
+    const currentUser = user;
+
+    // console.log(`pool.data.length >>>>>>>>>>${pool.data.length}`);
+
+    const milliseconds = new Date().getTime();
+    if (pool.length !== 0) {
+      const targetNumber = logic.randomizer(0, pool.data.length);
+      // console.log(`returnded random number >>>>>>>>>>>${targetNumber}`);
+      const target = pool.data[targetNumber].id;
+      // console.log(`randomized number + id >>> ${target}`);
+      findFavorites(target, user.liked).then(founded => {
+        if (founded === undefined) {
+          const liked = {
+            id: target,
+            time: milliseconds
+          };
+          currentUser.liked.push(liked);
+
+          Promise.all([
+            updateUserFavorites(currentUser, target),
+            findInFavoritesFromResponse(pool.data, currentUser.liked)
+          ]).then(result_ => {
+            // console.log(
+            //   `after promise all result >>>>>>>>>>>>>>>>>>>>>${result_}`
+            // );
+            gotMatchesFromResponse(result_, target, currentUser.liked).then(
+              res_ => {
+                resolve(res_);
+              }
+            );
+          });
+        } else {
+          console.log(">already liked<");
+          return new Promise(function(resolve_) {
+            resolve_("already liked");
+          })
+            .then(() => {
+              return findInFavoritesFromResponse(pool.data, currentUser.liked);
+            })
+            .then(result_ => {
+              const word = "already liked";
+              gotMatchesFromResponse(result_, word, currentUser.liked).then(
+                res_ => {
+                  resolve(res_);
+                }
+              );
+            });
+        }
+      });
+    }
+  });
+}
+
 app.post("/search", function(req, res) {
-  console.log(req.body);
+  // console.log(req.body);
   if (req.cookies.session !== undefined) {
     if (JSON.stringify(req.body) !== "{}") {
-      session.checkSession(req.cookies.session)
+      session
+        .checkSession(req.cookies.session)
         .then(data => {
           if (data === "liquid") {
-            console.log("accsess to search");
+            // console.log("accsess to search");
 
-            giphySearch(req.body.toSearch).then(giphy_res => {
+            giphySearch(req.body.toSearch).then(giphyRes => {
               auth.findUser(req.cookies.session).then(user => {
                 Promise.all([
                   updateUserHistory(user, req.body.toSearch),
-                  randomize(giphy_res, user)
+                  randomize(giphyRes, user)
                 ]).then(finalRes => {
-                  console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>> result have been sended");
+                  // console.log(
+                  //   ">>>>>>>>>>>>>>>>>>>>>>>>>>> result have been sended"
+                  // );
                   if (finalRes[1] === "already liked") {
                     console.log(finalRes[1]);
                     res.send({
-                      searchResponse: giphy_res.data,
+                      searchResponse: giphyRes.data,
                       fromHistory: {
                         history: finalRes[0],
                         likes: finalRes[1]
@@ -91,7 +239,7 @@ app.post("/search", function(req, res) {
                     });
                   } else {
                     res.send({
-                      searchResponse: giphy_res.data,
+                      searchResponse: giphyRes.data,
                       fromHistory: {
                         history: finalRes[0],
                         likes: finalRes[1]
@@ -109,12 +257,12 @@ app.post("/search", function(req, res) {
           if (err) throw err;
         });
     } else {
-      console.log("you are not logged in");
+      // console.log("you are not logged in");
       res.send("empty body are not allowed");
     }
   } else {
     res.send("you are not logged in");
-  };
+  }
 });
 
 app.get("/", function(req, res) {
@@ -123,13 +271,14 @@ app.get("/", function(req, res) {
 
 app.post("/signup", function(req, res) {
   // let encrypted = encryptPass(req.body.pass);
-  console.log(req.body);
-  if (JSON.stringify(req.body) !== "{}" && 
-  (!req.body.name === false || !req.body.pass === false) && 
-    (req.body.name !== "" && req.body.pass !== ""))
-
-  auth.checkUserExistance(req.body.name).then(res_ => {
-      if (res_ === "not exists") {
+  // console.log(req.body);
+  if (
+    JSON.stringify(req.body) !== "{}" &&
+    (!req.body.name === false || !req.body.pass === false) &&
+    (req.body.name !== "" && req.body.pass !== "")
+  )
+    auth.checkUserExistance(req.body.name).then(ifExist => {
+      if (ifExist === "not exists") {
         auth.createUser(req.body).then(() => res.send("created"));
       } else {
         res.send("already exists");
@@ -137,21 +286,22 @@ app.post("/signup", function(req, res) {
     });
   else {
     res.send("empty body");
-  };
+  }
 });
 
 app.post("/signin", function(req, res) {
-  if (JSON.stringify(req.body) !== "{}" && 
-  (!req.body.name === false && !req.body.pass === false) && 
-  (req.body.name !== "" && req.body.pass !== "")) {
-    
+  if (
+    JSON.stringify(req.body) !== "{}" &&
+    (!req.body.name === false && !req.body.pass === false) &&
+    (req.body.name !== "" && req.body.pass !== "")
+  ) {
     auth.checkUserExistance(req.body.name).then(data => {
       if (data === "exists") {
-        auth.checkUserPassword(req.body).then(data => {
-          if (data !== "password does not matches") {
-            console.log(data);
-            session.addSession(data);
-            res.cookie("session", data, {
+        auth.checkUserPassword(req.body).then(cookieId => {
+          if (cookieId !== "password does not matches") {
+            // console.log(data);
+            session.addSession(cookieId);
+            res.cookie("session", cookieId, {
               maxAge: process.env.TIMER,
               httpOnly: true
             });
@@ -165,152 +315,8 @@ app.post("/signin", function(req, res) {
       }
     });
   } else {
-    res.send('uncorrect data');
-  };
+    res.send("uncorrect data");
+  }
 });
-
-//
-
-function updateUserHistory(user, keyword) {
-  const milliseconds = new Date().getTime();
-
-  let length_ = user.history.length - 1;
-  if (length_ < 0) {
-    length_ = 0;
-  }
-  console.log(`user history > ${user.history[length_]}`);
-
-  if (
-    user.history[length_] == undefined ||
-    user.history[length_].keyword !== keyword
-  ) {
-    user.history.push({
-      keyword,
-      time: milliseconds
-    });
-    return new Promise(function(resolve, reject) {
-      db.NewUser.findByIdAndUpdate(user._id, user, { new: true }, function(
-        err,
-        data
-      ) {
-        console.log(`liking image > ${data}`);
-        resolve(data.history);
-      });
-    });
-  }
-  console.log("this keyword latest in pool");
-  return "this keyword latest in pool";
-}
-
-function updateUserFavorites(user, target) {
-  return new Promise(function(resolve, reject) {
-    db.NewUser.findByIdAndUpdate(user._id, user, { new: true }, function(err, data) {
-      if (err) throw err;
-      console.log("async done@!");
-      resolve(target); // //
-    });
-  });
-};
-
-function randomize(pool, user) {
-  return new Promise(function(resolve, reject) {
-    const user_ = user;
-
-    console.log(`pool.data.length >>>>>>>>>>${pool.data.length}`);
-
-    const milliseconds = new Date().getTime();
-    if (pool.length !== 0) {
-      const targetNumber = logic.randomizer(0, pool.data.length);
-      console.log(`returnded random number >>>>>>>>>>>${targetNumber}`);
-      const target = pool.data[targetNumber].id;
-      console.log(`randomized number + id >>> ${target}`);
-      findFavorites(target, user.liked).then(founded => {
-        if (founded === undefined) {
-          const liked = {
-            id: target,
-            time: milliseconds
-          };
-          user_.liked.push(liked);
-
-          Promise.all([
-            updateUserFavorites(user_, target),
-            findInFavoritesFromResponse(pool.data, user_.liked)
-          ]).then(result_ => {
-            console.log(
-              `after promise all result >>>>>>>>>>>>>>>>>>>>>${result_}`
-            );
-            gotMatchesFromResponse(result_, target, user_.liked).then(res_ => {
-              resolve(res_);
-            });
-          });
-        } else {
-          console.log(">already liked<");
-          return new Promise(function(resolve_, reject) {
-            resolve_("already liked");
-          })
-            .then(() => {
-              return findInFavoritesFromResponse(pool.data, user_.liked);
-            })
-            .then(result_ => {
-              const word = "already liked";
-              gotMatchesFromResponse(result_, word, user_.liked).then(res_ => {
-                resolve(res_);
-              });
-            });
-        }
-      });
-    }
-  });
-};
-
-function findFavorites(target, pool) {
-  return new Promise(function(resolve, reject) {
-    const target_ = target;
-    const result = pool.find(function(item) {
-      return item.id === target_; // 3oEduV4SOS9mmmIOkw
-    });
-    console.log(`found favorites > ${result}`);
-    resolve(result);
-  });
-}
-
-function findInFavoritesFromResponse(arr1, arr2) {
-  return new Promise(function(resolve, reject) {
-    const arr1_ = [];
-    const arr2_ = [];
-    arr1.forEach(item => {
-      arr1_.push(item.id);
-    });
-    arr2.forEach(item => {
-      arr2_.push(item.id);
-    });
-    // console.log('this is array one ========== ' + arr1_);
-    // console.log('this is array two ========== ' + arr2_);
-
-    const result = arr1_.filter(z => arr2_.indexOf(z) !== -1);
-    resolve(result);
-  });
-}
-
-function gotMatchesFromResponse(arr, word, liked) {
-  return new Promise(function(resolve, reject) {
-    giphy.id(arr, function(err, res) {
-      console.log("matches from response<<<<<<<");
-      console.log(res.data);
-      if (word === "already liked") {
-        resolve({
-          "matches from response": res.data,
-          liked: "already liked",
-          "all liked images": liked
-        });
-      }
-      resolve({
-        "matches from response": res.data,
-        liked: word,
-        "all liked images": liked
-      });
-    });
-  });
-}
 
 app.listen(port);

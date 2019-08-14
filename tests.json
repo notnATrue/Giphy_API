@@ -23,7 +23,7 @@
 						{
 							"key": "",
 							"value": "",
-							"description": "passed, when uncorrect body of object",
+							"description": "passed, when uncorrect body of object or unlogged user",
 							"type": "text"
 						}
 					]
@@ -61,7 +61,7 @@
 						{
 							"key": "name",
 							"value": "123",
-							"description": "passed, when user are exists",
+							"description": "passed, when user are not exists",
 							"type": "text"
 						},
 						{
@@ -104,7 +104,7 @@
 						{
 							"key": "name",
 							"value": "123",
-							"description": "passed, when user already exists",
+							"description": "passed, when user are not exists",
 							"type": "text"
 						},
 						{
@@ -169,49 +169,6 @@
 					]
 				},
 				"description": "passed, when trying to create unexisted user"
-			},
-			"response": []
-		},
-		{
-			"name": "http://localhost:3000/signin",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"value": "application/x-www-form-urlencoded",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "urlencoded",
-					"urlencoded": [
-						{
-							"key": "name",
-							"value": "123",
-							"description": "passed, when trying to logged as existed user",
-							"type": "text"
-						},
-						{
-							"key": "pass",
-							"value": "123",
-							"type": "text"
-						}
-					]
-				},
-				"url": {
-					"raw": "http://localhost:3000/signin",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "3000",
-					"path": [
-						"signin"
-					]
-				},
-				"description": "passed, when trying to logged as existed user"
 			},
 			"response": []
 		},
@@ -297,6 +254,49 @@
 					"port": "3000",
 					"path": [
 						"search"
+					]
+				},
+				"description": "passed, when trying to search with epty request"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/signin",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "name",
+							"value": "123",
+							"description": "passed, when trying to loggin as existed user",
+							"type": "text"
+						},
+						{
+							"key": "pass",
+							"value": "123",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/signin",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"signin"
 					]
 				},
 				"description": "passed, when trying to search with epty request"
