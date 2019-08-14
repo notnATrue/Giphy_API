@@ -3,8 +3,8 @@ const logic = require("../methods/thirdparty.logic");
 
 function checkUserExistance(name) {
   const userName = name;
-  return new Promise(function(resolve) {
-    db.NewUser.findOne({ name: userName }, function(err, data) {
+  return new Promise(resolve => {
+    db.NewUser.findOne({ name: userName }, (err, data) => {
       if (err) throw err;
       if (data !== null) {
         resolve("exists");
@@ -16,12 +16,12 @@ function checkUserExistance(name) {
 }
 
 function createUser(user) {
-  return new Promise(function(resolve) {
+  return new Promise(resolve => {
     const currentUser = user;
     const pass = logic.encryptPass(currentUser.pass);
     currentUser.pass = pass;
     const newUser = new db.NewUser(currentUser);
-    newUser.save(function(err) {
+    newUser.save(err => {
       if (err) {
         throw err;
       } else {
@@ -32,12 +32,11 @@ function createUser(user) {
 }
 
 function checkUserPassword(user) {
-  return new Promise(function(resolve) {
-    db.NewUser.findOne({ name: user.name }, function(err, data) {
+  return new Promise(resolve => {
+    db.NewUser.findOne({ name: user.name }, (err, data) => {
       if (err) throw err;
       if (logic.encryptPass(user.pass) === data.pass) {
         resolve(data._id);
-        // eslint-disable-next-line no-underscore-dangle
       } else {
         resolve("password does not matches");
       }
@@ -46,9 +45,9 @@ function checkUserPassword(user) {
 }
 
 function findUser(id) {
-  return new Promise(function(resolve) {
-    db.NewUser.findById({ _id: id }, function(err, data) {
-      // eslint-disable-next-line no-underscore-dangle
+  return new Promise(resolve => {
+    db.NewUser.findById({ _id: id }, (err, data) => {
+      if (err) throw err;
       resolve(data);
     });
   });

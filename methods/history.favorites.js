@@ -4,6 +4,11 @@ const db = require("../db");
 
 const logic = require("./thirdparty.logic");
 
+db.SessionPool.find({}, (err, data) => {
+  if (err) throw err;
+  console.log(data);
+});
+
 function updateUserHistory(user, keyword) {
   const milliseconds = new Date().getTime();
 
@@ -20,21 +25,24 @@ function updateUserHistory(user, keyword) {
       keyword,
       time: milliseconds
     });
-    return new Promise(function(resolve) {
-      db.NewUser.findByIdAndUpdate(user._id, user, { new: true }, function(
-        err,
-        data
-      ) {
-        resolve(data.history);
-      });
+    return new Promise(resolve => {
+      db.NewUser.findByIdAndUpdate(
+        user._id,
+        user,
+        { new: true },
+        (err, data) => {
+          if (err) throw err;
+          resolve(data.history);
+        }
+      );
     });
   }
   return "this keyword latest in pool";
 }
 
-function updateUserFavorites(user, target) {
-  return new Promise(function(resolve) {
-    db.NewUser.findByIdAndUpdate(user._id, user, { new: true }, function(err) {
+function updateUserFavorites(user) {
+  return new Promise(resolve => {
+    db.NewUser.findByIdAndUpdate(user._id, user, { new: true }, err => {
       if (err) throw err;
       resolve();
     });
@@ -42,8 +50,8 @@ function updateUserFavorites(user, target) {
 }
 
 function findFavorites(target, pool) {
-  return new Promise(function(resolve) {
-    const result = pool.find(function(item) {
+  return new Promise(resolve => {
+    const result = pool.find(item => {
       return item.id === target;
     });
     resolve(result);
@@ -51,7 +59,7 @@ function findFavorites(target, pool) {
 }
 
 function findInFavoritesFromResponse(arr1, arr2) {
-  return new Promise(function(resolve) {
+  return new Promise(resolve => {
     const resArrayOne = [];
     const resArrayTwo = [];
     arr1.forEach(item => {
@@ -67,8 +75,9 @@ function findInFavoritesFromResponse(arr1, arr2) {
 }
 
 function gotMatchesFromResponse(arr, word, liked) {
-  return new Promise(function(resolve) {
-    giphy.id(arr, function(err, res) {
+  return new Promise(resolve => {
+    giphy.id(arr, (err, res) => {
+      if (err) throw err;
       if (word === "already liked") {
         resolve({
           "matches from response": res.data,
@@ -86,11 +95,11 @@ function gotMatchesFromResponse(arr, word, liked) {
 }
 
 function randomize(pool, user) {
-  return new Promise(function(resolve) {
+  return new Promise(resolve => {
     const currentUser = user;
 
     const milliseconds = new Date().getTime();
-    if (pool.length !== 0) {
+    if (pool.data.length) {
       const targetNumber = logic.randomizer(0, pool.data.length);
       const target = pool.data[targetNumber].id;
       findFavorites(target, user.liked).then(founded => {
@@ -100,10 +109,6 @@ function randomize(pool, user) {
             time: milliseconds
           };
           currentUser.liked.push(liked);
-        //   Promise.all([
-        //     updateUserFavorites(currentUser, target),
-        //     findInFavoritesFromResponse(pool.data, currentUser.liked)
-        //   ])
           Promise.all([
             updateUserFavorites(currentUser, target),
             findInFavoritesFromResponse(pool.data, currentUser.liked)
@@ -115,7 +120,7 @@ function randomize(pool, user) {
             );
           });
         } else {
-          return new Promise(function(resolve_) {
+          return new Promise(resolve_ => {
             resolve_("already liked");
           })
             .then(() => {
@@ -130,6 +135,11 @@ function randomize(pool, user) {
               );
             });
         }
+      });
+    } else {
+      db.NewUser.findOne({ name: user.name }, (err, data) => {
+        if (err) throw err;
+        resolve(data.liked);
       });
     }
   });

@@ -1,5 +1,5 @@
-const name = document.querySelector("#name");
-const pass = document.querySelector("#pass");
+const nameUp = document.querySelector("#name");
+const passUp = document.querySelector("#pass");
 
 const nameIn = document.querySelector("#name_");
 const passIn = document.querySelector("#pass_");
@@ -33,5 +33,5 @@ signInButton.addEventListener("click", function() {
 
 const signButton = document.querySelector("#signup");
 signButton.addEventListener("click", function() {
-  myFetch("signup", name.value, pass.value);
+  myFetch("signup", nameUp.value, passUp.value);
 });

@@ -1,10 +1,10 @@
 const db = require("../db");
 
 function deleteSession(session) {
-  return new Promise(function(resolve) {
+  return new Promise(resolve => {
     let timer = null;
     timer = setInterval(() => {
-      db.sessionPool.deleteOne(session, function(err) {
+      db.SessionPool.deleteOne(session, err => {
         if (err) throw err;
         clearInterval(timer);
         resolve();
@@ -14,12 +14,12 @@ function deleteSession(session) {
 }
 
 function addSession(id_) {
-  return new Promise(function(resolve) {
+  return new Promise(resolve => {
     const newSession = new db.SessionPool({
       id: id_,
       expires: Date.now() + 10000
     });
-    newSession.save(function(err, data) {
+    newSession.save((err, data) => {
       if (err) throw err;
       if (data !== null) {
         resolve("added");
@@ -32,8 +32,8 @@ function addSession(id_) {
 }
 
 function checkSession(id_) {
-  return new Promise(function(resolve) {
-    db.SessionPool.findOne({ id: id_ }, function(err, data) {
+  return new Promise(resolve => {
+    db.SessionPool.findOne({ id: id_ }, (err, data) => {
       if (err) throw err;
       if (data !== null) {
         resolve("liquid");
