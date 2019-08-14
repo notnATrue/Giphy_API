@@ -1,3 +1,5 @@
+
+
 require("dotenv").config();
 
 const express = require("express");
@@ -12,10 +14,6 @@ const cookieParser = require("cookie-parser");
 
 const giphy = require("giphy-api")(process.env.GIPHY_KEY);
 
-const mongoose = require("mongoose");
-
-const sha256 = require("sha256");
-
 app.use(cookieParser());
 app.use(bodyParser());
 app.use(bodyParser.json());
@@ -24,39 +22,21 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.static(`${__dirname}/src`));
 
-const mongoDB = process.env.DB_HOST;
+const db = require('./db');
 
-mongoose.connect(mongoDB);
+const logic = require('./thirdparty.logic')
 
-const { Schema } = mongoose;
-
-const userSchema = new Schema({
-  name: String,
-  pass: String,
-  history: [],
-  liked: []
-});
-
-const newUser = mongoose.model("Person", userSchema);
-
-const idSchema = new Schema({
-  id: String,
-  time: String
-});
-
-const sessionPool = mongoose.model("ids", idSchema);
-
-newUser.find(function(err, data) {
+db.newUser.find(function(err, data) {
   if (err) throw err;
   else console.log(data);
 });
 
-// newUser.remove({}, function(err, data) {
+// db.newUser.remove({}, function(err, data) {
 //     if (err) throw err;
 //     else console.log(data);
 // });
 
-// sessionPool.remove({}, function(err) {
+// db.sessionPool.remove({}, function(err) {
 //     if(err) throw err;
 // });
 
@@ -77,15 +57,15 @@ function giphySearch(value) {
   });
 }
 
-sessionPool.find(function(err, data) {
+db.sessionPool.find(function(err, data) {
   if (err) throw err;
   console.log(data);
 });
 
 app.post("/search", function(req, res) {
   console.log(req.body);
-  if (JSON.stringify(req.body) !== "{}") {
-    if (req.cookies.session !== undefined) {
+  if (req.cookies.session !== undefined) {
+    if (JSON.stringify(req.body) !== "{}") {
       checkSession(req.cookies.session)
         .then(data => {
           if (data === "liquid") {
@@ -130,11 +110,11 @@ app.post("/search", function(req, res) {
         });
     } else {
       console.log("you are not logged in");
-      res.send("you are not logged in");
+      res.send("empty body are not allowed");
     }
   } else {
-    res.send("empty body are not allowed");
-  }
+    res.send("you are not logged in");
+  };
 });
 
 app.get("/", function(req, res) {
@@ -179,16 +159,11 @@ app.post("/signin", function(req, res) {
   });
 });
 
-function encryptPass(val) {
-  const encrypted = sha256.x2(val);
-  return encrypted;
-}
-
 function deleteSession(session) {
   return new Promise(function(resolve, reject) {
     let timer = null;
     timer = setInterval(() => {
-      sessionPool.deleteOne(session, function(err, data) {
+      db.sessionPool.deleteOne(session, function(err, data) {
         if (err) throw err;
         console.log(data);
         clearInterval(timer);
@@ -200,7 +175,7 @@ function deleteSession(session) {
 
 function addSession(id_) {
   return new Promise(function(resolve, reject) {
-    const newSession = new sessionPool({
+    const newSession = new db.sessionPool({
       id: id_,
       expires: Date.now() + 10000
     });
@@ -221,7 +196,7 @@ function addSession(id_) {
 function checkSession(id_) {
   return new Promise(function(resolve, reject) {
     console.log(`checkSession id_ ${id_}`);
-    sessionPool.findOne({ id: id_ }, function(err, data) {
+    db.sessionPool.findOne({ id: id_ }, function(err, data) {
       console.log(`data > ${data}`);
       if (err) throw err;
       if (data !== null) {
@@ -236,7 +211,7 @@ function checkSession(id_) {
 
 function checkUserExistance(name_) {
   return new Promise(function(resolve, reject) {
-    newUser.findOne({ name: name_ }, function(err, data) {
+    db.newUser.findOne({ name: name_ }, function(err, data) {
       if (err) throw err;
       if (data !== null) {
         resolve("exists");
@@ -249,7 +224,7 @@ function checkUserExistance(name_) {
 
 function createUser(user_) {
   return new Promise(function(resolve, reject) {
-    const pass = encryptPass(user_.pass);
+    const pass = logic.encryptPass(user_.pass);
     user_.pass = pass;
     const newUser_ = new newUser(user_);
     newUser_.save(function(err) {
@@ -265,9 +240,9 @@ function createUser(user_) {
 
 function checkUserPassword(user) {
   return new Promise(function(resolve, reject) {
-    newUser.findOne({ name: user.name }, function(err, data) {
+    db.newUser.findOne({ name: user.name }, function(err, data) {
       if (err) throw err;
-      if (encryptPass(user.pass) === data.pass) {
+      if (logic.encryptPass(user.pass) === data.pass) {
         console.log(data);
         resolve(data._id);
       } else {
@@ -275,11 +250,11 @@ function checkUserPassword(user) {
       }
     });
   });
-}
+};
 
 function findUser(id) {
   return new Promise(function(resolve, reject) {
-    newUser.findById({ _id: id }, function(err, data) {
+    db.newUser.findById({ _id: id }, function(err, data) {
       console.log(`founded user by id > ${data}`);
       resolve(data);
     });
@@ -304,7 +279,7 @@ function updateUserHistory(user, keyword) {
       time: milliseconds
     });
     return new Promise(function(resolve, reject) {
-      newUser.findByIdAndUpdate(user._id, user, { new: true }, function(
+      db.newUser.findByIdAndUpdate(user._id, user, { new: true }, function(
         err,
         data
       ) {
@@ -319,16 +294,13 @@ function updateUserHistory(user, keyword) {
 
 function updateUserFavorites(user, target) {
   return new Promise(function(resolve, reject) {
-    newUser.findByIdAndUpdate(user._id, user, { new: true }, function(
-      err,
-      data
-    ) {
+    db.newUser.findByIdAndUpdate(user._id, user, { new: true }, function(err, data) {
       if (err) throw err;
       console.log("async done@!");
       resolve(target); // //
     });
   });
-}
+};
 
 function randomize(pool, user) {
   return new Promise(function(resolve, reject) {
@@ -338,7 +310,7 @@ function randomize(pool, user) {
 
     const milliseconds = new Date().getTime();
     if (pool.length !== 0) {
-      const targetNumber = randomizer(0, pool.data.length);
+      const targetNumber = logic.randomizer(0, pool.data.length);
       console.log(`returnded random number >>>>>>>>>>>${targetNumber}`);
       const target = pool.data[targetNumber].id;
       console.log(`randomized number + id >>> ${target}`);
@@ -379,11 +351,7 @@ function randomize(pool, user) {
       });
     }
   });
-}
-
-function randomizer(min, max) {
-  return Math.floor(Math.random() * (max - min)) + min;
-}
+};
 
 function findFavorites(target, pool) {
   return new Promise(function(resolve, reject) {
