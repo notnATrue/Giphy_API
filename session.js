@@ -16,7 +16,7 @@ function deleteSession(session) {
   
   function addSession(id_) {
     return new Promise(function(resolve, reject) {
-      const newSession = new db.sessionPool({
+      const newSession = new db.SessionPool({
         id: id_,
         expires: Date.now() + 10000
       });
@@ -37,7 +37,7 @@ function deleteSession(session) {
   function checkSession(id_) {
     return new Promise(function(resolve, reject) {
       console.log(`checkSession id_ ${id_}`);
-      db.sessionPool.findOne({ id: id_ }, function(err, data) {
+      db.SessionPool.findOne({ id: id_ }, function(err, data) {
         console.log(`data > ${data}`);
         if (err) throw err;
         if (data !== null) {

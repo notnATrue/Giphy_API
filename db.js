@@ -6,25 +6,25 @@ mongoose.connect(mongoDB);
 
 const { Schema } = mongoose;
 
-const userSchema = new Schema({
+const UserSchema = new Schema({
   name: String,
   pass: String,
   history: [],
   liked: []
 });
 
-const newUser = mongoose.model("Person", userSchema);
+const NewUser = mongoose.model("Person", UserSchema);
 
-const idSchema = new Schema({
+const IdSchema = new Schema({
   id: String,
   time: String
 });
 
-const sessionPool = mongoose.model("ids", idSchema);
+const SessionPool = mongoose.model("ids", IdSchema);
 
 module.exports = {
     mongoose,
-    newUser,
-    idSchema,
-    sessionPool
+    NewUser,
+    IdSchema,
+    SessionPool
 }

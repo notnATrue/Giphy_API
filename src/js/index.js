@@ -6,16 +6,6 @@ const pass_ = document.querySelector("#pass_");
 
 const result = document.querySelector("#result");
 
-const signInButton = document.querySelector("#signin");
-signInButton.addEventListener("click", function(event) {
-  myFetch("/signin", name_.value, pass_.value);
-});
-
-const signButton = document.querySelector("#signup");
-signButton.addEventListener("click", function(event) {
-  myFetch("signup", name.value, pass.value);
-});
-
 function myFetch(url, name, pass) {
   return fetch(url, {
     method: "POST",
@@ -33,3 +23,15 @@ function myFetch(url, name, pass) {
       if (err) throw err;
     });
 }
+
+const signInButton = document.querySelector("#signin");
+signInButton.addEventListener("click", function(event) {
+  myFetch("/signin", name_.value, pass_.value);
+});
+
+const signButton = document.querySelector("#signup");
+signButton.addEventListener("click", function(event) {
+  myFetch("signup", name.value, pass.value);
+});
+
+

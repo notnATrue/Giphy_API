@@ -1,5 +1,3 @@
-
-
 require("dotenv").config();
 
 const express = require("express");
@@ -28,22 +26,24 @@ const logic = require('./thirdparty.logic');
 
 const session = require('./session');
 
-// db.newUser.find(function(err, data) {
+const auth = require('./authentication')
+
+// db.NewUser.find(function(err, data) {
 //   if (err) throw err;
 //   else console.log(data);
 // });
 
-// db.sessionPool.find(function(err, data) {
+// db.SessionPool.find(function(err, data) {
 //   if (err) throw err;
 //   console.log(data);
 // });
 
-// db.newUser.remove({}, function(err, data) {
+// db.NewUser.remove({}, function(err, data) {
 //     if (err) throw err;
 //     else console.log(data);
 // });
 
-// db.sessionPool.remove({}, function(err) {
+// db.SessionPool.remove({}, function(err) {
 //     if(err) throw err;
 // });
 
@@ -74,7 +74,7 @@ app.post("/search", function(req, res) {
             console.log("accsess to search");
 
             giphySearch(req.body.toSearch).then(giphy_res => {
-              findUser(req.cookies.session).then(user => {
+              auth.findUser(req.cookies.session).then(user => {
                 Promise.all([
                   updateUserHistory(user, req.body.toSearch),
                   randomize(giphy_res, user)
@@ -124,92 +124,52 @@ app.get("/", function(req, res) {
 app.post("/signup", function(req, res) {
   // let encrypted = encryptPass(req.body.pass);
   console.log(req.body);
-  if (JSON.stringify(req.body) !== "{}" && (!req.body.name === false && !req.body.pass === false))
-    checkUserExistance(req.body.name).then(res_ => {
+  if (JSON.stringify(req.body) !== "{}" && 
+  (!req.body.name === false || !req.body.pass === false) && 
+    (req.body.name !== "" && req.body.pass !== ""))
+
+  auth.checkUserExistance(req.body.name).then(res_ => {
       if (res_ === "not exists") {
-        createUser(req.body).then(() => res.send("created"));
+        auth.createUser(req.body).then(() => res.send("created"));
       } else {
         res.send("already exists");
       }
     });
   else {
     res.send("empty body");
-  }
+  };
 });
 
 app.post("/signin", function(req, res) {
-  checkUserExistance(req.body.name).then(data => {
-    if (data === "exists") {
-      checkUserPassword(req.body).then(data => {
-        if (data !== "password does not matches") {
-          console.log(data);
-          session.addSession(data);
-          res.cookie("session", data, {
-            maxAge: process.env.TIMER,
-            httpOnly: true
-          });
-          res.send("logged");
-        } else {
-          res.send("password does not matches");
-        }
-      });
-    } else {
-      res.send("user are not exists");
-    }
-  });
+  if (JSON.stringify(req.body) !== "{}" && 
+  (!req.body.name === false && !req.body.pass === false) && 
+  (req.body.name !== "" && req.body.pass !== "")) {
+    
+    auth.checkUserExistance(req.body.name).then(data => {
+      if (data === "exists") {
+        auth.checkUserPassword(req.body).then(data => {
+          if (data !== "password does not matches") {
+            console.log(data);
+            session.addSession(data);
+            res.cookie("session", data, {
+              maxAge: process.env.TIMER,
+              httpOnly: true
+            });
+            res.send("logged");
+          } else {
+            res.send("password does not matches");
+          }
+        });
+      } else {
+        res.send("user are not exists");
+      }
+    });
+  } else {
+    res.send('uncorrect data');
+  };
 });
 
-function checkUserExistance(name_) {
-  return new Promise(function(resolve, reject) {
-    db.newUser.findOne({ name: name_ }, function(err, data) {
-      if (err) throw err;
-      if (data !== null) {
-        resolve("exists");
-      } else {
-        resolve("not exists");
-      }
-    });
-  });
-}
-
-function createUser(user_) {
-  return new Promise(function(resolve, reject) {
-    const pass = logic.encryptPass(user_.pass);
-    user_.pass = pass;
-    const newUser_ = new newUser(user_);
-    newUser_.save(function(err) {
-      if (err) {
-        throw err;
-      } else {
-        console.log(user_);
-        resolve("user created");
-      }
-    });
-  });
-}
-
-function checkUserPassword(user) {
-  return new Promise(function(resolve, reject) {
-    db.newUser.findOne({ name: user.name }, function(err, data) {
-      if (err) throw err;
-      if (logic.encryptPass(user.pass) === data.pass) {
-        console.log(data);
-        resolve(data._id);
-      } else {
-        resolve("password does not matches");
-      }
-    });
-  });
-};
-
-function findUser(id) {
-  return new Promise(function(resolve, reject) {
-    db.newUser.findById({ _id: id }, function(err, data) {
-      console.log(`founded user by id > ${data}`);
-      resolve(data);
-    });
-  });
-}
+//
 
 function updateUserHistory(user, keyword) {
   const milliseconds = new Date().getTime();
@@ -229,7 +189,7 @@ function updateUserHistory(user, keyword) {
       time: milliseconds
     });
     return new Promise(function(resolve, reject) {
-      db.newUser.findByIdAndUpdate(user._id, user, { new: true }, function(
+      db.NewUser.findByIdAndUpdate(user._id, user, { new: true }, function(
         err,
         data
       ) {
@@ -244,7 +204,7 @@ function updateUserHistory(user, keyword) {
 
 function updateUserFavorites(user, target) {
   return new Promise(function(resolve, reject) {
-    db.newUser.findByIdAndUpdate(user._id, user, { new: true }, function(err, data) {
+    db.NewUser.findByIdAndUpdate(user._id, user, { new: true }, function(err, data) {
       if (err) throw err;
       console.log("async done@!");
       resolve(target); // //

@@ -9,14 +9,21 @@
 			"name": "http://localhost:3000/search",
 			"request": {
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
 				"body": {
-					"mode": "formdata",
-					"formdata": [
+					"mode": "urlencoded",
+					"urlencoded": [
 						{
 							"key": "",
 							"value": "",
-							"description": "passed , while try to search while unlogged user",
+							"description": "passed, when uncorrect body of object",
 							"type": "text"
 						}
 					]
@@ -40,14 +47,26 @@
 			"name": "http://localhost:3000/signin",
 			"request": {
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
 				"body": {
-					"mode": "formdata",
-					"formdata": [
+					"mode": "urlencoded",
+					"urlencoded": [
 						{
-							"key": "",
-							"value": "",
-							"description": "passed , when user are not exists",
+							"key": "name",
+							"value": "123",
+							"description": "passed, when user are exists",
+							"type": "text"
+						},
+						{
+							"key": "pass",
+							"value": "123",
 							"type": "text"
 						}
 					]
@@ -83,9 +102,14 @@
 					"mode": "urlencoded",
 					"urlencoded": [
 						{
-							"key": "",
-							"value": "",
-							"description": "passed , when trying to send empty body",
+							"key": "name",
+							"value": "123",
+							"description": "passed, when user already exists",
+							"type": "text"
+						},
+						{
+							"key": "pass",
+							"value": "123",
 							"type": "text"
 						}
 					]
@@ -122,8 +146,8 @@
 					"urlencoded": [
 						{
 							"key": "name",
-							"value": "",
-							"description": "passed, when trying to create existed user",
+							"value": "123",
+							"description": "passed, when uncorrect body of object",
 							"type": "text"
 						},
 						{
@@ -165,13 +189,13 @@
 					"urlencoded": [
 						{
 							"key": "name",
-							"value": "",
+							"value": "123",
 							"description": "passed, when trying to logged as existed user",
 							"type": "text"
 						},
 						{
 							"key": "pass",
-							"value": "",
+							"value": "123",
 							"type": "text"
 						}
 					]
@@ -253,7 +277,7 @@
 						{
 							"key": "toSearch",
 							"value": "",
-							"description": "passed, when trying to search with epty request",
+							"description": "passed, when trying to search with correct body and empty value of search",
 							"type": "text"
 						},
 						{
@@ -364,6 +388,92 @@
 					]
 				},
 				"description": "passed, when trying to search while session was ended"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/signup",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "somename",
+							"value": "",
+							"description": "passed, when sending uncorrect definition in object",
+							"type": "text"
+						},
+						{
+							"key": "somepass",
+							"value": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/signup",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"signup"
+					]
+				},
+				"description": "passed, when sending uncorrect definition in object"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/signin",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "somename",
+							"value": "",
+							"description": "passed, when send uncorrect data in request",
+							"type": "text"
+						},
+						{
+							"key": "somepass",
+							"value": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/signin",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"signin"
+					]
+				},
+				"description": "passed, when send uncorrect data in request"
 			},
 			"response": []
 		}
